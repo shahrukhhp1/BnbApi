@@ -207,25 +207,6 @@ namespace BnbApi.Services
             return GetTopTen(item.UId);
         }
 
-        //public int CalculateRankScore(User u)
-        //{
-        //    int ret = 100;
-        //    // stage min max 0 - 100
-        //    // stage number * 100
-        //    // stars x 100 / (stage x 3) => max 100
-        //    // score x 10 / (stage x 20)
-        //    if (u.Stages.HasValue) 
-        //    {
-        //        ret = ret * u.Stages.Value;
-        //        if (u.Starts.HasValue)
-        //            ret += (u.Starts.Value * 100) / (u.Stages.Value * 3);
-
-        //        if (u.Score > 0)
-        //            ret += (u.Score * 10) / (u.Stages.Value * 20);
-        //    }
-        //    return ret;
-        //}
-
         internal WorldScore UpdateWholeEntry(FirstEntry item)
         {
 
