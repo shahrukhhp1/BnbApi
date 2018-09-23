@@ -34,6 +34,22 @@ namespace BnbApi.Controllers
             return ret;
         }
 
+        [HttpGet]
+        public DataTransfer<GameVersion> GetVersion()
+        {
+            DataTransfer<GameVersion> ret = new DataTransfer<GameVersion>();
+            try
+            {
+                ret.Data = bLayer.GetVersion();
+            }
+            catch (Exception ex)
+            {
+                ret.IsSuccess = false;
+                ret.Errors = new string[] { ex.Message.ToString(), ex.StackTrace.ToString() };
+            }
+            return ret;
+        }
+
 
         [HttpPost]
         public DataTransfer<WorldScore> WholeEntry([FromBody]FirstEntry item)

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using BnbApi.DataTransfer;
+using System.Data.SqlClient;
+using System.IO;
+using System.Web.Hosting;
 
 namespace BnbApi.Services
 {
@@ -118,22 +121,59 @@ namespace BnbApi.Services
             return ret;
         }
 
-        public RankUser ConvertUserToRank(User cUser) 
+        public RankUser ConvertUserToRank(User cUser)
         {
-            RankUser cu = new RankUser();
-            cu.Name = cUser.Name;
-            cu.IsCurrentUser = true;
-            cu.Score = cUser.Score;
-            cu.UId = cUser.UId;
-            cu.RankScore = cUser.RankScore.HasValue ? cUser.RankScore.Value : 0;
-            cu.Stages = cUser.Stages.HasValue ? cUser.Stages.Value : 0;
-            cu.Stars = cUser.Starts.HasValue ? cUser.Starts.Value : 0;
-            if (cu.Stages > 0 && cu.Stars > 0) 
+            RankUser rankUser = new RankUser();
+            rankUser.Name = cUser.Name;
+            rankUser.IsCurrentUser = true;
+            rankUser.Score = cUser.Score;
+            rankUser.UId = cUser.UId;
+            rankUser.Location = cUser.Location;
+            RankUser varOO0 = rankUser;
+            int? int_ = cUser.RankScore;
+            int varOO1;
+            if (!int_.HasValue)
             {
-                cu.Rating = (cu.Stars * 10) / (cu.Stages * 3);
+                varOO1 = 0;
             }
-            cu.IsCurrentUser = false;
-            return cu;
+            else
+            {
+                int_ = cUser.RankScore;
+                varOO1 = int_.Value;
+            }
+            varOO0.RankScore = varOO1;
+            RankUser varMF0 = rankUser;
+            int_ = cUser.Stages;
+            int varMF1;
+            if (!int_.HasValue)
+            {
+                varMF1 = 0;
+            }
+            else
+            {
+                int_ = cUser.Stages;
+                varMF1 = int_.Value;
+            }
+            varMF0.Stages = varMF1;
+            RankUser varBM0 = rankUser;
+            int_ = cUser.Starts;
+            int varBM1;
+            if (!int_.HasValue)
+            {
+                varBM1 = 0;
+            }
+            else
+            {
+                int_ = cUser.Starts;
+                varBM1 = int_.Value;
+            }
+            varBM0.Stars = varBM1;
+            if (rankUser.Stages > 0 && rankUser.Stars > 0)
+            {
+                rankUser.Rating = (double)(rankUser.Stars * 10 / (rankUser.Stages * 3));
+            }
+            rankUser.IsCurrentUser = false;
+            return rankUser;
         }
 
         internal WorldScore WholeEntry(FirstEntry item)
@@ -269,6 +309,58 @@ namespace BnbApi.Services
                 }
             }
             return int_;
+        }
+
+        internal GameVersion GetVersion()
+        {
+            GameVersion outcome = new GameVersion();
+            using (bnbEntities bnbEntities = new bnbEntities())
+            {
+                outcome = bnbEntities.GameVersions.OrderByDescending(x => x.Id).FirstOrDefault();
+            }
+            return outcome;
+        }
+
+        public void FixRanks()
+        {
+            using (bnbEntities bnbEntities = new bnbEntities())
+            {
+                List<User> list = bnbEntities.User.ToList<User>();
+                foreach (User current in list)
+                {
+                    int value = this.CalculateRankScore(current);
+                    current.RankScore = new int?(value);
+                    bnbEntities.SaveChanges();
+                }
+            }
+        }
+
+        public string testc()
+        {
+            string connectionString = "Data Source=db731440271.db.1and1.com,1433;Initial Catalog=db731440271;User Id=dbo731440271;Password=Axact123;";
+            string outcome;
+            try
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                {
+                    string cmdText = File.ReadAllText(HostingEnvironment.MapPath("/sql.txt"));
+                    using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
+                    {
+                        SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(sqlCommand);
+                        sqlConnection.Open();
+                        sqlCommand.ExecuteNonQuery();
+                        sqlConnection.Close();
+                    }
+                }
+            }
+            catch (Exception varVL0)
+            {
+                Exception exception = varVL0;
+                outcome = exception.Message + " - " + exception.StackTrace;
+                return outcome;
+            }
+            outcome = "success";
+            return outcome;
         }
     }
 }
