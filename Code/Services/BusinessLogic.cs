@@ -10,6 +10,7 @@ namespace BnbApi.Services
     {
         internal WorldScore GetTopTen(int? uid=0)
         {
+
             WorldScore ret = new WorldScore();
             ret.TopTen = new List<RankUser>();
             ret.UId = uid.Value;
