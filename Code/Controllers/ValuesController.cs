@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BnbApi.Controllers
 {
-    public class ValuesController : ApiController
+    [ApiController]
+    [Produces("application/xml")]
+    [Route("api/[controller]/[action]")]
+    public class ValuesController : ControllerBase
     {
         // GET api/values
         public IEnumerable<string> Get()
@@ -15,13 +14,15 @@ namespace BnbApi.Controllers
             return new string[] { "value1", "value2" };
         }
 
-        // GET api/values/5
+        // GET api/values/Get/5
+        [HttpGet]
         public string Get(int id)
         {
             return "value";
         }
 
         // POST api/values
+        [HttpPost]
         public void Post([FromBody]string value)
         {
         }

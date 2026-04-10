@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
 using BnbApi.DataTransfer;
-
+using BnbApi.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BnbApi.Controllers
 {
-    public class BnbController : ApiController
+    [ApiController]
+    [Produces("application/xml")]
+    [Route("api/[controller]/[action]")]
+    public class BnbController : ControllerBase
     {
-        Services.BusinessLogic bLayer = new Services.BusinessLogic();
-        // GET api/bnb
+        private readonly BusinessLogic _businessLogic;
+
+        public BnbController(BusinessLogic businessLogic)
+        {
+            _businessLogic = businessLogic;
+        }
+
+        // GET api/Bnb/Get — same surface as legacy Web API (api/{controller}/{action})
+        [HttpGet]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
@@ -24,7 +31,7 @@ namespace BnbApi.Controllers
             DataTransfer<WorldScore> ret = new DataTransfer<WorldScore>();
             try
             {
-                ret.Data = bLayer.GetTopTen(uid);
+                ret.Data = _businessLogic.GetTopTen(uid);
             }
             catch (Exception ex) 
             {
@@ -40,7 +47,7 @@ namespace BnbApi.Controllers
             DataTransfer<GameVersion> ret = new DataTransfer<GameVersion>();
             try
             {
-                ret.Data = bLayer.GetVersion();
+                ret.Data = _businessLogic.GetVersion();
             }
             catch (Exception ex)
             {
@@ -57,7 +64,7 @@ namespace BnbApi.Controllers
             DataTransfer<WorldScore> ret = new DataTransfer<WorldScore>();
             try
             {
-                ret.Data = bLayer.WholeEntry(item);
+                ret.Data = _businessLogic.WholeEntry(item);
             }
             catch (Exception ex)
             {
@@ -75,7 +82,7 @@ namespace BnbApi.Controllers
             DataTransfer<WorldScore> ret = new DataTransfer<WorldScore>();
             try
             {
-                ret.Data = bLayer.UpdateWholeEntry(item);
+                ret.Data = _businessLogic.UpdateWholeEntry(item);
             }
             catch (Exception ex)
             {

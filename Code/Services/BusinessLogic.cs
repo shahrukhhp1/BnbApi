@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using BnbApi.DataTransfer;
-using System.Data.SqlClient;
 using System.IO;
-using System.Web.Hosting;
+using System.Linq;
+using BnbApi.DataTransfer;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 namespace BnbApi.Services
 {
     public class BusinessLogic
     {
+        private readonly BnbDbContext _db;
+        private readonly IWebHostEnvironment _env;
+
+        public BusinessLogic(BnbDbContext db, IWebHostEnvironment env)
+        {
+            _db = db;
+            _env = env;
+        }
+
         internal WorldScore GetTopTen(int? uid=0)
         {
 
@@ -18,14 +26,10 @@ namespace BnbApi.Services
             ret.TopTen = new List<RankUser>();
             ret.UId = uid.Value;
 
-            List<User> allData = new List<User>();
-            using (bnbEntities ctx = new bnbEntities()) 
-            {
-                allData = ctx.User.OrderByDescending(x => x.RankScore).ToList();
+            List<User> allData = _db.User.OrderByDescending(x => x.RankScore).ToList();
                 //ret.TopTen = 
-            }
 
-            var maxCount = (allData.Count < 7) ? allData.Count : 7;
+            var maxCount = (allData.Count < 50) ? allData.Count : 50;
             for (int i = 0; i < maxCount; i++)
             {
                 var item = ConvertUserToRank(allData[i]);
@@ -35,6 +39,7 @@ namespace BnbApi.Services
 
             if (uid.HasValue && uid > 0)
             {
+                maxCount = allData.Count;
                 ret.CurrentUserList = new List<RankUser>();
                 for (int i = 0; i < maxCount; i++)
                 {
@@ -181,12 +186,10 @@ namespace BnbApi.Services
 
             if (item.UId == 0)
             {
-                using (bnbEntities ctx = new bnbEntities())
-                {
                     User chkUser = null;
                     if (!string.IsNullOrEmpty(item.FbId))
                     {
-                        var fbCheck = ctx.User.Where(x => x.FbId == item.FbId).FirstOrDefault();
+                        var fbCheck = _db.User.Where(x => x.FbId == item.FbId).FirstOrDefault();
                         if (fbCheck != null)
                         {
                             chkUser = fbCheck;
@@ -197,7 +200,7 @@ namespace BnbApi.Services
 
                     if (chkUser == null)
                     {
-                        var NameCheck = ctx.User.Where(x => x.Name == item.Name).FirstOrDefault();
+                        var NameCheck = _db.User.Where(x => x.Name == item.Name).FirstOrDefault();
                         if (NameCheck != null)
                             chkUser = NameCheck;
 
@@ -223,8 +226,8 @@ namespace BnbApi.Services
                                 newEnt.FbId = item.FbId;
                             }
                             newEnt.RankScore = CalculateRankScore(newEnt);
-                            ctx.User.Add(newEnt);
-                            ctx.SaveChanges();
+                            _db.User.Add(newEnt);
+                            _db.SaveChanges();
                             item.UId = newEnt.UId;
                         }
                         else
@@ -242,7 +245,6 @@ namespace BnbApi.Services
                     }
 
                   
-                }
             }
             return GetTopTen(item.UId);
         }
@@ -252,9 +254,7 @@ namespace BnbApi.Services
 
             if (item.UId != 0)
             {
-                using (bnbEntities ctx = new bnbEntities())
-                {
-                    User chkUser = ctx.User.Where(x => x.UId == item.UId).FirstOrDefault(); 
+                    User chkUser = _db.User.Where(x => x.UId == item.UId).FirstOrDefault(); 
 
                     if (chkUser != null)
                     {
@@ -274,9 +274,8 @@ namespace BnbApi.Services
                             chkUser.FbId = item.FbId;
                         }
                         chkUser.RankScore = CalculateRankScore(chkUser);
-                        ctx.SaveChanges();
+                        _db.SaveChanges();
                     }
-                }
             }
             return GetTopTen(item.UId);
         }
@@ -314,44 +313,29 @@ namespace BnbApi.Services
         internal GameVersion GetVersion()
         {
             GameVersion outcome = new GameVersion();
-            using (bnbEntities bnbEntities = new bnbEntities())
-            {
-                outcome = bnbEntities.GameVersions.OrderByDescending(x => x.Id).FirstOrDefault();
-            }
+            outcome = _db.GameVersions.OrderByDescending(x => x.Id).FirstOrDefault();
             return outcome;
         }
 
         public void FixRanks()
         {
-            using (bnbEntities bnbEntities = new bnbEntities())
-            {
-                List<User> list = bnbEntities.User.ToList<User>();
+                List<User> list = _db.User.ToList<User>();
                 foreach (User current in list)
                 {
                     int value = this.CalculateRankScore(current);
                     current.RankScore = new int?(value);
-                    bnbEntities.SaveChanges();
+                    _db.SaveChanges();
                 }
-            }
         }
 
         public string testc()
         {
-            string connectionString = "Data Source=db731440271.db.1and1.com,1433;Initial Catalog=db731440271;User Id=dbo731440271;Password=Axact123;";
             string outcome;
             try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
-                {
-                    string cmdText = File.ReadAllText(HostingEnvironment.MapPath("/sql.txt"));
-                    using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
-                    {
-                        SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(sqlCommand);
-                        sqlConnection.Open();
-                        sqlCommand.ExecuteNonQuery();
-                        sqlConnection.Close();
-                    }
-                }
+                string sqlPath = Path.Combine(_env.ContentRootPath, "sql.txt");
+                string cmdText = File.ReadAllText(sqlPath);
+                _db.Database.ExecuteSqlRaw(cmdText);
             }
             catch (Exception varVL0)
             {
