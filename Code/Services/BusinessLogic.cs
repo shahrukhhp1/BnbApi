@@ -209,7 +209,7 @@ namespace BnbApi.Services
                         {
                             User newEnt = new User();
                             newEnt.Name = item.Name;
-                            newEnt.Guid = item.Guid;
+                            newEnt.Guid = ParseClientGuid(item.Guid);
                             newEnt.BallCount = item.BallCount;
                             newEnt.LLimit = item.LLimit;
                             newEnt.Score = item.Score;
@@ -315,6 +315,13 @@ namespace BnbApi.Services
             GameVersion outcome = new GameVersion();
             outcome = _db.GameVersions.OrderByDescending(x => x.Id).FirstOrDefault();
             return outcome;
+        }
+
+        private static Guid ParseClientGuid(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw, "null", StringComparison.OrdinalIgnoreCase))
+                return Guid.NewGuid();
+            return Guid.TryParse(raw, out var g) ? g : Guid.NewGuid();
         }
 
         public void FixRanks()

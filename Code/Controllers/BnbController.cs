@@ -59,7 +59,7 @@ namespace BnbApi.Controllers
 
 
         [HttpPost]
-        public DataTransfer<WorldScore> WholeEntry([FromBody]FirstEntry item)
+        public DataTransfer<WorldScore> WholeEntry([FromForm] FirstEntry item)
         {
             DataTransfer<WorldScore> ret = new DataTransfer<WorldScore>();
             try
@@ -77,7 +77,7 @@ namespace BnbApi.Controllers
         //
 
         [HttpPost]
-        public DataTransfer<WorldScore> UpdateEntry([FromBody]FirstEntry item)
+        public DataTransfer<WorldScore> UpdateEntry([FromForm] FirstEntry item)
         {
             DataTransfer<WorldScore> ret = new DataTransfer<WorldScore>();
             try

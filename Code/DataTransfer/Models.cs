@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace BnbApi.DataTransfer
 {
@@ -15,7 +14,8 @@ namespace BnbApi.DataTransfer
         public string Name { get; set; }
         public string FbId { get; set; }
         public string Location { get; set; }
-        public Guid Guid { get; set; }
+        /// <summary>Form field "Guid". Unity may send the literal "null" from PlayerPrefs.</summary>
+        public string Guid { get; set; }
         public int UId { get; set; }
         public int Score { get; set; }
         public int BallCount { get; set; }
